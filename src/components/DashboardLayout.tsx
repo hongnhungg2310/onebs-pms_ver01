@@ -1,15 +1,17 @@
 import { Outlet, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, Loader2 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { roleLabel } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 const titles: Record<string, string> = {
   "/": "Tổng quan",
@@ -23,8 +25,26 @@ const titles: Record<string, string> = {
 export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const init = useStore((s) => s.init);
+  const initialized = useStore((s) => s.initialized);
   const currentUser = useStore((s) => s.currentUser);
   const logout = useStore((s) => s.logout);
+
+  useEffect(() => { void init(); }, [init]);
+
+  // Wait for session check before deciding to redirect
+  const [sessionChecked, setSessionChecked] = (require("react") as typeof import("react")).useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(() => setSessionChecked(true));
+  }, []);
+
+  if (!sessionChecked || !initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!currentUser) return <Navigate to="/login" replace />;
 
