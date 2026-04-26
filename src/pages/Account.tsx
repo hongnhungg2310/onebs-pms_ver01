@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 export default function Account() {
   const navigate = useNavigate();
-  const { currentUser, updateProfile, logout } = useStore();
+  const { currentUser, updateProfile, logout, changePassword } = useStore();
   const [name, setName] = useState(currentUser?.name || "");
   const [email, setEmail] = useState(currentUser?.email || "");
   const [pwd, setPwd] = useState({ old: "", new1: "", new2: "" });
@@ -21,16 +21,19 @@ export default function Account() {
   if (!currentUser) return null;
   const initials = currentUser.name.split(" ").slice(-2).map((n) => n[0]).join("");
 
-  const saveProfile = () => {
-    updateProfile({ name, email });
+  const saveProfile = async () => {
+    await updateProfile({ name, email });
     toast.success("Đã cập nhật thông tin");
   };
-  const changePwd = () => {
-    if (!pwd.old || !pwd.new1) { toast.error("Vui lòng nhập mật khẩu"); return; }
+  const changePwd = async () => {
+    if (!pwd.new1) { toast.error("Vui lòng nhập mật khẩu mới"); return; }
     if (pwd.new1 !== pwd.new2) { toast.error("Mật khẩu xác nhận không khớp"); return; }
-    if (pwd.new1.length < 6) { toast.error("Mật khẩu mới tối thiểu 6 ký tự"); return; }
-    setPwd({ old: "", new1: "", new2: "" });
-    toast.success("Đã đổi mật khẩu (demo)");
+    if (pwd.new1.length < 8) { toast.error("Mật khẩu mới tối thiểu 8 ký tự"); return; }
+    const ok = await changePassword(pwd.new1);
+    if (ok) {
+      setPwd({ old: "", new1: "", new2: "" });
+      toast.success("Đã đổi mật khẩu");
+    }
   };
 
   return (

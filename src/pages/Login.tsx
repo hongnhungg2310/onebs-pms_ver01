@@ -5,32 +5,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
-  const login = useStore((s) => s.login);
   const [email, setEmail] = useState("an.nguyen@onebs.vn");
-  const [password, setPassword] = useState("demo1234");
+  const [password, setPassword] = useState("Demo@1234");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      const ok = login(email);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
       setLoading(false);
-      if (ok) { toast.success("Đăng nhập thành công"); navigate("/"); }
-      else toast.error("Email không tồn tại hoặc tài khoản đã bị khóa");
-    }, 400);
+      toast.error(error.message === "Invalid login credentials" ? "Email hoặc mật khẩu không đúng" : error.message);
+      return;
+    }
+    // Check locked status
+    const { data: profile } = await supabase.from("profiles").select("locked").eq("id", data.user.id).maybeSingle();
+    if (profile?.locked) {
+      await supabase.auth.signOut();
+      setLoading(false);
+      toast.error("Tài khoản đã bị khóa. Liên hệ quản trị viên.");
+      return;
+    }
+    setLoading(false);
+    toast.success("Đăng nhập thành công");
+    navigate("/");
   };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Branding panel */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-hero relative overflow-hidden">
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-gradient-brand opacity-20 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-gradient-primary opacity-20 blur-3xl" />
@@ -53,7 +62,6 @@ export default function Login() {
         <p className="text-xs text-muted-foreground relative">© 2025 Công ty Cổ phần OneBS</p>
       </div>
 
-      {/* Form */}
       <div className="flex items-center justify-center p-6">
         <Card className="w-full max-w-md p-8 shadow-brand border-border/50">
           <div className="lg:hidden mb-6 flex justify-center"><Logo className="h-10" /></div>
@@ -83,7 +91,7 @@ export default function Login() {
           </form>
 
           <div className="mt-6 rounded-md bg-muted/50 border p-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">Tài khoản demo:</p>
+            <p className="font-medium text-foreground mb-1">Tài khoản demo (mật khẩu: Demo@1234):</p>
             <p>Admin: an.nguyen@onebs.vn</p>
             <p>Manager: binh.tran@onebs.vn</p>
             <p>Member: cuong.le@onebs.vn</p>
