@@ -7,16 +7,24 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, MailCheck } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
     setSent(true);
-    toast.success("Liên kết đặt lại đã được gửi (demo)");
+    toast.success("Liên kết đặt lại đã được gửi");
   };
 
   return (
@@ -34,7 +42,9 @@ export default function ForgotPassword() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@onebs.vn" />
               </div>
-              <Button type="submit" className="w-full bg-gradient-primary">Gửi liên kết đặt lại</Button>
+              <Button type="submit" disabled={loading} className="w-full bg-gradient-primary">
+                {loading ? "Đang gửi..." : "Gửi liên kết đặt lại"}
+              </Button>
             </form>
           </>
         ) : (
