@@ -27,18 +27,13 @@ export function DashboardLayout() {
   const location = useLocation();
   const init = useStore((s) => s.init);
   const initialized = useStore((s) => s.initialized);
+  const loading = useStore((s) => s.loading);
   const currentUser = useStore((s) => s.currentUser);
   const logout = useStore((s) => s.logout);
 
   useEffect(() => { void init(); }, [init]);
 
-  // Wait for session check before deciding to redirect
-  const [sessionChecked, setSessionChecked] = (require("react") as typeof import("react")).useState(false);
-  useEffect(() => {
-    supabase.auth.getSession().then(() => setSessionChecked(true));
-  }, []);
-
-  if (!sessionChecked || !initialized) {
+  if (!initialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
