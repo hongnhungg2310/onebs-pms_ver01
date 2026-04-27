@@ -9,9 +9,22 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useStore, statusLabel, taskStatusLabel, roleLabel } from "@/lib/store";
+import { useStore, statusLabel, taskStatusLabel, roleLabel, TaskStatus } from "@/lib/store";
 import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
 import GanttChart from "@/components/GanttChart";
+
+const taskStatusColor: Record<TaskStatus, string> = {
+  todo: "bg-muted text-muted-foreground",
+  in_progress: "bg-primary/15 text-primary",
+  review: "bg-accent/20 text-accent-foreground",
+  done: "bg-secondary/15 text-secondary",
+};
+const priorityColor = {
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-accent/20 text-accent-foreground",
+  high: "bg-destructive/15 text-destructive",
+};
+const priorityLabel = { low: "Thấp", medium: "TB", high: "Cao" };
 import { useState } from "react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,7 +34,7 @@ import { toast } from "sonner";
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, tasks, users, updateProject } = useStore();
+  const { projects, tasks, users, updateProject, updateTask } = useStore();
   const project = projects.find((p) => p.id === id);
   const [newDocName, setNewDocName] = useState("");
 
@@ -90,9 +103,85 @@ export default function ProjectDetail() {
       <Tabs defaultValue="progress">
         <TabsList>
           <TabsTrigger value="progress">Tiến độ</TabsTrigger>
+          <TabsTrigger value="tasks">Công việc ({projectTasks.length})</TabsTrigger>
           <TabsTrigger value="members">Thành viên ({memberUsers.length})</TabsTrigger>
           <TabsTrigger value="docs">Tài liệu ({project.documents.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="tasks" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Bảng Kanban công việc</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {(Object.keys(taskStatusLabel) as TaskStatus[]).map((col) => {
+                  const colTasks = projectTasks.filter((t) => t.status === col);
+                  return (
+                    <div
+                      key={col}
+                      className="rounded-lg border bg-muted/30 p-3 flex flex-col min-h-[360px]"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        const tid = e.dataTransfer.getData("text/plain");
+                        if (tid) {
+                          updateTask(tid, { status: col });
+                          toast.success("Đã cập nhật trạng thái");
+                        }
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge className={taskStatusColor[col]}>{taskStatusLabel[col]}</Badge>
+                        <span className="text-xs text-muted-foreground">{colTasks.length}</span>
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        {colTasks.map((t) => {
+                          const u = users.find((x) => x.id === t.assignee);
+                          return (
+                            <div
+                              key={t.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
+                              className="rounded-md border bg-card p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition-smooth space-y-2"
+                            >
+                              <p className="text-sm font-medium line-clamp-2">{t.title}</p>
+                              {t.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                              )}
+                              <div className="flex items-center justify-between gap-2">
+                                <Badge className={`${priorityColor[t.priority]} text-[10px]`}>
+                                  {priorityLabel[t.priority]}
+                                </Badge>
+                                {u && (
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarFallback className="bg-gradient-primary text-primary-foreground text-[10px]">
+                                      {u.name.split(" ").slice(-2).map((n) => n[0]).join("")}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                              </div>
+                              {t.dueDate && (
+                                <p className="text-[10px] text-muted-foreground">Hạn: {t.dueDate}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {colTasks.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-6">Trống</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {projectTasks.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Dự án chưa có công việc nào.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="progress" className="space-y-4">
           <Card>
