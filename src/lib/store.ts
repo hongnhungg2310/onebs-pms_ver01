@@ -278,7 +278,17 @@ export const useStore = create<Store>((set, get) => ({
         uploadedAt: d.created_at?.slice(0, 10) ?? "",
       }));
 
-      set({ users, projects, tasks, documents, loading: false });
+      const activities: ProjectActivity[] = (activitiesRes.data ?? []).map((a: any) => ({
+        id: a.id,
+        projectId: a.project_id,
+        actorId: a.actor_id,
+        actorName: userNameById.get(a.actor_id) ?? "Hệ thống",
+        actionType: a.action_type,
+        description: a.description,
+        createdAt: a.created_at,
+      }));
+
+      set({ users, projects, tasks, documents, activities, loading: false });
     } catch (e) {
       console.error(e);
       set({ loading: false });
