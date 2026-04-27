@@ -83,6 +83,9 @@ interface Store {
   projects: Project[];
   tasks: Task[];
   documents: Document[];
+  activities: ProjectActivity[];
+
+  logActivity: (projectId: string, actionType: string, description: string) => Promise<void>;
 
   init: () => Promise<void>;
   refreshAll: () => Promise<void>;
