@@ -71,6 +71,36 @@ export type Database = {
         }
         Relationships: []
       }
+      project_activities: {
+        Row: {
+          action_type: string
+          actor_id: string | null
+          created_at: string
+          description: string
+          id: string
+          metadata: Json
+          project_id: string
+        }
+        Insert: {
+          action_type: string
+          actor_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json
+          project_id: string
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json
+          project_id?: string
+        }
+        Relationships: []
+      }
       project_documents: {
         Row: {
           created_at: string
