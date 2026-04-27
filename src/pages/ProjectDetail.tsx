@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useStore, statusLabel, taskStatusLabel, roleLabel } from "@/lib/store";
 import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
+import GanttChart from "@/components/GanttChart";
 import { useState } from "react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -96,42 +97,22 @@ export default function ProjectDetail() {
         <TabsContent value="progress" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Cập nhật tiến độ</CardTitle>
+              <CardTitle className="text-base">Gantt chart - Lịch trình công việc</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GanttChart project={project} tasks={projectTasks} users={users} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Cập nhật tiến độ tổng</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Input type="range" min={0} max={100} value={project.progress} onChange={(e) => updateProgress(Number(e.target.value))} />
-              <div className="text-sm text-muted-foreground">{projectTasks.filter((t) => t.status === "done").length}/{projectTasks.length} công việc đã hoàn thành</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Công việc thuộc dự án</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tên công việc</TableHead>
-                    <TableHead>Người thực hiện</TableHead>
-                    <TableHead>Hạn</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {projectTasks.map((t) => {
-                    const u = users.find((x) => x.id === t.assignee);
-                    return (
-                      <TableRow key={t.id}>
-                        <TableCell className="font-medium">{t.title}</TableCell>
-                        <TableCell>{u?.name || "—"}</TableCell>
-                        <TableCell className="text-muted-foreground">{t.dueDate}</TableCell>
-                        <TableCell><Badge variant="outline">{taskStatusLabel[t.status]}</Badge></TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {projectTasks.length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Chưa có công việc.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              <div className="text-sm text-muted-foreground">
+                {projectTasks.filter((t) => t.status === "done").length}/{projectTasks.length} công việc đã hoàn thành • Tiến độ: <span className="font-semibold text-foreground">{project.progress}%</span>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
