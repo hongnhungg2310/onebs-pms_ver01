@@ -65,6 +65,16 @@ export interface Document {
   uploadedAt: string;
 }
 
+export interface ProjectActivity {
+  id: string;
+  projectId: string;
+  actorId: string | null;
+  actorName: string;
+  actionType: string;
+  description: string;
+  createdAt: string;
+}
+
 interface Store {
   initialized: boolean;
   loading: boolean;
