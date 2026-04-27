@@ -173,6 +173,13 @@ export default function Tasks() {
         </Dialog>
       </div>
 
+      <Tabs defaultValue="table" className="w-full">
+        <TabsList>
+          <TabsTrigger value="table" className="gap-2"><List className="h-4 w-4" /> Bảng</TabsTrigger>
+          <TabsTrigger value="kanban" className="gap-2"><LayoutGrid className="h-4 w-4" /> Kanban</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="table">
       <Card>
         <CardContent className="p-0">
           <Table>
