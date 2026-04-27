@@ -106,6 +106,7 @@ export default function ProjectDetail() {
           <TabsTrigger value="tasks">Công việc ({projectTasks.length})</TabsTrigger>
           <TabsTrigger value="members">Thành viên ({memberUsers.length})</TabsTrigger>
           <TabsTrigger value="docs">Tài liệu ({project.documents.length})</TabsTrigger>
+          <TabsTrigger value="history" className="gap-1.5"><History className="h-3.5 w-3.5" /> Lịch sử</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
