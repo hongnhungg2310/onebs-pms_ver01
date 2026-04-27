@@ -157,7 +157,7 @@ export const useStore = create<Store>((set, get) => ({
 
     const apply = async (uid: string | null) => {
       if (!uid) {
-        set({ currentUser: null, users: [], projects: [], tasks: [], documents: [] });
+        set({ currentUser: null, users: [], projects: [], tasks: [], documents: [], activities: [] });
         return;
       }
       const [{ data: profile }, { data: roles }] = await Promise.all([
@@ -297,7 +297,7 @@ export const useStore = create<Store>((set, get) => ({
 
   logout: async () => {
     await supabase.auth.signOut();
-    set({ currentUser: null, users: [], projects: [], tasks: [], documents: [] });
+    set({ currentUser: null, users: [], projects: [], tasks: [], documents: [], activities: [] });
   },
 
   updateProfile: async (patch) => {
