@@ -9,9 +9,22 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useStore, statusLabel, taskStatusLabel, roleLabel } from "@/lib/store";
+import { useStore, statusLabel, taskStatusLabel, roleLabel, TaskStatus } from "@/lib/store";
 import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
 import GanttChart from "@/components/GanttChart";
+
+const taskStatusColor: Record<TaskStatus, string> = {
+  todo: "bg-muted text-muted-foreground",
+  in_progress: "bg-primary/15 text-primary",
+  review: "bg-accent/20 text-accent-foreground",
+  done: "bg-secondary/15 text-secondary",
+};
+const priorityColor = {
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-accent/20 text-accent-foreground",
+  high: "bg-destructive/15 text-destructive",
+};
+const priorityLabel = { low: "Thấp", medium: "TB", high: "Cao" };
 import { useState } from "react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
