@@ -1,4 +1,4 @@
-import { LayoutDashboard, FolderKanban, ListTodo, FileText, Users, UserCircle } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ListTodo, FileText, Users, UserCircle, BarChart3 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -9,9 +9,10 @@ import { useStore } from "@/lib/store";
 
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Dự án", url: "/projects", icon: FolderKanban },
-  { title: "Công việc", url: "/tasks", icon: ListTodo },
-  { title: "Tài liệu", url: "/documents", icon: FileText },
+  { title: "Quản lý dự án", url: "/projects", icon: FolderKanban },
+  { title: "Quản lý công việc", url: "/tasks", icon: ListTodo },
+  { title: "Quản lý tài liệu", url: "/documents", icon: FileText },
+  { title: "Báo cáo & Thống kê", url: "/reports", icon: BarChart3 },
 ];
 
 const adminItems = [
