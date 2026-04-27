@@ -10,7 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useStore, statusLabel, taskStatusLabel, roleLabel, TaskStatus } from "@/lib/store";
-import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2, Activity, History } from "lucide-react";
 import GanttChart from "@/components/GanttChart";
 
 const taskStatusColor: Record<TaskStatus, string> = {
@@ -34,7 +34,7 @@ import { toast } from "sonner";
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, tasks, users, updateProject, updateTask } = useStore();
+  const { projects, tasks, users, activities, updateProject, updateTask } = useStore();
   const project = projects.find((p) => p.id === id);
   const [newDocName, setNewDocName] = useState("");
 
@@ -106,6 +106,7 @@ export default function ProjectDetail() {
           <TabsTrigger value="tasks">Công việc ({projectTasks.length})</TabsTrigger>
           <TabsTrigger value="members">Thành viên ({memberUsers.length})</TabsTrigger>
           <TabsTrigger value="docs">Tài liệu ({project.documents.length})</TabsTrigger>
+          <TabsTrigger value="history" className="gap-1.5"><History className="h-3.5 w-3.5" /> Lịch sử</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
@@ -264,6 +265,44 @@ export default function ProjectDetail() {
                 ))}
                 {project.documents.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Chưa có tài liệu nào.</p>}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4" /> Lịch sử hoạt động
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const projActivities = activities.filter((a) => a.projectId === project.id);
+                if (projActivities.length === 0) {
+                  return <p className="text-sm text-muted-foreground text-center py-8">Chưa có hoạt động nào được ghi nhận.</p>;
+                }
+                return (
+                  <div className="relative space-y-4 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-border">
+                    {projActivities.map((a) => (
+                      <div key={a.id} className="relative">
+                        <div className="absolute -left-[18px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm">{a.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              <span className="font-medium text-foreground/80">{a.actorName}</span>
+                              {" • "}
+                              {new Date(a.createdAt).toLocaleString("vi-VN")}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] shrink-0">{a.actionType}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

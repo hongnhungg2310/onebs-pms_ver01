@@ -65,6 +65,16 @@ export interface Document {
   uploadedAt: string;
 }
 
+export interface ProjectActivity {
+  id: string;
+  projectId: string;
+  actorId: string | null;
+  actorName: string;
+  actionType: string;
+  description: string;
+  createdAt: string;
+}
+
 interface Store {
   initialized: boolean;
   loading: boolean;
@@ -73,6 +83,9 @@ interface Store {
   projects: Project[];
   tasks: Task[];
   documents: Document[];
+  activities: ProjectActivity[];
+
+  logActivity: (projectId: string, actionType: string, description: string) => Promise<void>;
 
   init: () => Promise<void>;
   refreshAll: () => Promise<void>;
@@ -109,6 +122,34 @@ export const useStore = create<Store>((set, get) => ({
   projects: [],
   tasks: [],
   documents: [],
+  activities: [],
+
+  logActivity: async (projectId, actionType, description) => {
+    const cur = get().currentUser;
+    if (!cur) return;
+    const { error } = await supabase.from("project_activities").insert({
+      project_id: projectId,
+      actor_id: cur.id,
+      action_type: actionType,
+      description,
+    });
+    if (error) { console.error(error); return; }
+    const { data } = await supabase
+      .from("project_activities")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const userNameById = new Map(get().users.map((u) => [u.id, u.name]));
+    const activities: ProjectActivity[] = (data ?? []).map((a: any) => ({
+      id: a.id,
+      projectId: a.project_id,
+      actorId: a.actor_id,
+      actorName: userNameById.get(a.actor_id) ?? "Hệ thống",
+      actionType: a.action_type,
+      description: a.description,
+      createdAt: a.created_at,
+    }));
+    set({ activities });
+  },
 
   init: async () => {
     if (get().initialized) return;
@@ -116,7 +157,7 @@ export const useStore = create<Store>((set, get) => ({
 
     const apply = async (uid: string | null) => {
       if (!uid) {
-        set({ currentUser: null, users: [], projects: [], tasks: [], documents: [] });
+        set({ currentUser: null, users: [], projects: [], tasks: [], documents: [], activities: [] });
         return;
       }
       const [{ data: profile }, { data: roles }] = await Promise.all([
@@ -151,7 +192,7 @@ export const useStore = create<Store>((set, get) => ({
   refreshAll: async () => {
     set({ loading: true });
     try {
-      const [profilesRes, rolesRes, projectsRes, membersRes, tasksRes, commentsRes, docsRes, projDocsRes] =
+      const [profilesRes, rolesRes, projectsRes, membersRes, tasksRes, commentsRes, docsRes, projDocsRes, activitiesRes] =
         await Promise.all([
           supabase.from("profiles").select("*").order("full_name"),
           supabase.from("user_roles").select("user_id, role"),
@@ -161,6 +202,7 @@ export const useStore = create<Store>((set, get) => ({
           supabase.from("task_comments").select("*").order("created_at"),
           supabase.from("documents").select("*").order("created_at", { ascending: false }),
           supabase.from("project_documents").select("*").order("created_at", { ascending: false }),
+          supabase.from("project_activities").select("*").order("created_at", { ascending: false }),
         ]);
 
       const roleMap = new Map<string, UserRole>();
@@ -236,7 +278,17 @@ export const useStore = create<Store>((set, get) => ({
         uploadedAt: d.created_at?.slice(0, 10) ?? "",
       }));
 
-      set({ users, projects, tasks, documents, loading: false });
+      const activities: ProjectActivity[] = (activitiesRes.data ?? []).map((a: any) => ({
+        id: a.id,
+        projectId: a.project_id,
+        actorId: a.actor_id,
+        actorName: userNameById.get(a.actor_id) ?? "Hệ thống",
+        actionType: a.action_type,
+        description: a.description,
+        createdAt: a.created_at,
+      }));
+
+      set({ users, projects, tasks, documents, activities, loading: false });
     } catch (e) {
       console.error(e);
       set({ loading: false });
@@ -245,7 +297,7 @@ export const useStore = create<Store>((set, get) => ({
 
   logout: async () => {
     await supabase.auth.signOut();
-    set({ currentUser: null, users: [], projects: [], tasks: [], documents: [] });
+    set({ currentUser: null, users: [], projects: [], tasks: [], documents: [], activities: [] });
   },
 
   updateProfile: async (patch) => {
@@ -278,6 +330,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   updateProject: async (id, patch) => {
+    const before = get().projects.find((p) => p.id === id);
     const dbPatch: any = {};
     if (patch.name !== undefined) dbPatch.name = patch.name;
     if (patch.description !== undefined) dbPatch.description = patch.description;
@@ -290,14 +343,25 @@ export const useStore = create<Store>((set, get) => ({
       if (error) { toast.error(error.message); return; }
     }
     if (patch.members !== undefined) {
+      const beforeMembers = new Set(before?.members ?? []);
+      const afterMembers = new Set(patch.members);
+      const added = [...afterMembers].filter((u) => !beforeMembers.has(u));
+      const removed = [...beforeMembers].filter((u) => !afterMembers.has(u));
       await supabase.from("project_members").delete().eq("project_id", id);
       if (patch.members.length) {
         await supabase.from("project_members").insert(patch.members.map((uid) => ({ project_id: id, user_id: uid })));
       }
+      for (const uid of added) {
+        const n = get().users.find((u) => u.id === uid)?.name ?? uid;
+        await get().logActivity(id, "member_added", `Thêm thành viên: ${n}`);
+      }
+      for (const uid of removed) {
+        const n = get().users.find((u) => u.id === uid)?.name ?? uid;
+        await get().logActivity(id, "member_removed", `Gỡ thành viên: ${n}`);
+      }
     }
     if (patch.documents !== undefined) {
-      // Sync project_documents: add new ones (those without matching id in DB) and delete removed
-      const existing = get().projects.find((p) => p.id === id)?.documents ?? [];
+      const existing = before?.documents ?? [];
       const existingIds = new Set(existing.map((d) => d.id));
       const newIds = new Set(patch.documents.map((d) => d.id));
       const toDelete = [...existingIds].filter((x) => !newIds.has(x));
@@ -307,6 +371,21 @@ export const useStore = create<Store>((set, get) => ({
         await supabase.from("project_documents").insert(
           toAdd.map((d) => ({ project_id: id, name: d.name, size: d.size, uploaded_by: get().currentUser?.id })),
         );
+      }
+      for (const d of toAdd) await get().logActivity(id, "doc_added", `Tải lên tài liệu "${d.name}"`);
+      for (const did of toDelete) {
+        const name = existing.find((x) => x.id === did)?.name ?? "—";
+        await get().logActivity(id, "doc_removed", `Xóa tài liệu "${name}"`);
+      }
+    }
+    if (before) {
+      if (patch.status !== undefined && patch.status !== before.status) {
+        await get().logActivity(id, "project_status_changed",
+          `Cập nhật trạng thái dự án: ${statusLabel[before.status]} → ${statusLabel[patch.status]}`);
+      }
+      if (patch.progress !== undefined && patch.progress !== before.progress) {
+        await get().logActivity(id, "project_progress_changed",
+          `Cập nhật tiến độ: ${before.progress}% → ${patch.progress}%`);
       }
     }
     await get().refreshAll();
@@ -325,10 +404,12 @@ export const useStore = create<Store>((set, get) => ({
       assignee_id: t.assignee || null, due_date: t.dueDate || null,
     });
     if (error) { toast.error(error.message); return; }
+    await get().logActivity(t.projectId, "task_created", `Tạo công việc "${t.title}"`);
     await get().refreshAll();
   },
 
   updateTask: async (id, patch) => {
+    const before = get().tasks.find((x) => x.id === id);
     const dbPatch: any = {};
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.description !== undefined) dbPatch.description = patch.description;
@@ -339,12 +420,35 @@ export const useStore = create<Store>((set, get) => ({
     if (patch.dueDate !== undefined) dbPatch.due_date = patch.dueDate || null;
     const { error } = await supabase.from("tasks").update(dbPatch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    if (before) {
+      const logs: Array<[string, string]> = [];
+      if (patch.status !== undefined && patch.status !== before.status) {
+        logs.push(["task_status_changed",
+          `Cập nhật trạng thái "${before.title}": ${taskStatusLabel[before.status]} → ${taskStatusLabel[patch.status]}`]);
+      }
+      if (patch.assignee !== undefined && patch.assignee !== before.assignee) {
+        const newU = get().users.find((u) => u.id === patch.assignee)?.name ?? "—";
+        logs.push(["task_assignee_changed", `Đổi người phụ trách "${before.title}" → ${newU}`]);
+      }
+      if (patch.priority !== undefined && patch.priority !== before.priority) {
+        logs.push(["task_priority_changed", `Đổi độ ưu tiên "${before.title}" → ${patch.priority}`]);
+      }
+      if (patch.dueDate !== undefined && patch.dueDate !== before.dueDate) {
+        logs.push(["task_due_changed", `Đổi hạn "${before.title}" → ${patch.dueDate || "—"}`]);
+      }
+      if (patch.title !== undefined && patch.title !== before.title) {
+        logs.push(["task_renamed", `Đổi tên công việc: "${before.title}" → "${patch.title}"`]);
+      }
+      for (const [t, d] of logs) await get().logActivity(before.projectId, t, d);
+    }
     await get().refreshAll();
   },
 
   deleteTask: async (id) => {
+    const before = get().tasks.find((x) => x.id === id);
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    if (before) await get().logActivity(before.projectId, "task_deleted", `Xóa công việc "${before.title}"`);
     await get().refreshAll();
   },
 
