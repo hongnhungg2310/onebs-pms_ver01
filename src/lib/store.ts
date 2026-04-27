@@ -192,7 +192,7 @@ export const useStore = create<Store>((set, get) => ({
   refreshAll: async () => {
     set({ loading: true });
     try {
-      const [profilesRes, rolesRes, projectsRes, membersRes, tasksRes, commentsRes, docsRes, projDocsRes] =
+      const [profilesRes, rolesRes, projectsRes, membersRes, tasksRes, commentsRes, docsRes, projDocsRes, activitiesRes] =
         await Promise.all([
           supabase.from("profiles").select("*").order("full_name"),
           supabase.from("user_roles").select("user_id, role"),
@@ -202,6 +202,7 @@ export const useStore = create<Store>((set, get) => ({
           supabase.from("task_comments").select("*").order("created_at"),
           supabase.from("documents").select("*").order("created_at", { ascending: false }),
           supabase.from("project_documents").select("*").order("created_at", { ascending: false }),
+          supabase.from("project_activities").select("*").order("created_at", { ascending: false }),
         ]);
 
       const roleMap = new Map<string, UserRole>();
