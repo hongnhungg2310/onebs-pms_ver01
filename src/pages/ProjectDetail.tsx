@@ -34,7 +34,7 @@ import { toast } from "sonner";
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, tasks, users, updateProject } = useStore();
+  const { projects, tasks, users, updateProject, updateTask } = useStore();
   const project = projects.find((p) => p.id === id);
   const [newDocName, setNewDocName] = useState("");
 
