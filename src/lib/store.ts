@@ -330,6 +330,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   updateProject: async (id, patch) => {
+    const before = get().projects.find((p) => p.id === id);
     const dbPatch: any = {};
     if (patch.name !== undefined) dbPatch.name = patch.name;
     if (patch.description !== undefined) dbPatch.description = patch.description;
@@ -342,14 +343,25 @@ export const useStore = create<Store>((set, get) => ({
       if (error) { toast.error(error.message); return; }
     }
     if (patch.members !== undefined) {
+      const beforeMembers = new Set(before?.members ?? []);
+      const afterMembers = new Set(patch.members);
+      const added = [...afterMembers].filter((u) => !beforeMembers.has(u));
+      const removed = [...beforeMembers].filter((u) => !afterMembers.has(u));
       await supabase.from("project_members").delete().eq("project_id", id);
       if (patch.members.length) {
         await supabase.from("project_members").insert(patch.members.map((uid) => ({ project_id: id, user_id: uid })));
       }
+      for (const uid of added) {
+        const n = get().users.find((u) => u.id === uid)?.name ?? uid;
+        await get().logActivity(id, "member_added", `Thêm thành viên: ${n}`);
+      }
+      for (const uid of removed) {
+        const n = get().users.find((u) => u.id === uid)?.name ?? uid;
+        await get().logActivity(id, "member_removed", `Gỡ thành viên: ${n}`);
+      }
     }
     if (patch.documents !== undefined) {
-      // Sync project_documents: add new ones (those without matching id in DB) and delete removed
-      const existing = get().projects.find((p) => p.id === id)?.documents ?? [];
+      const existing = before?.documents ?? [];
       const existingIds = new Set(existing.map((d) => d.id));
       const newIds = new Set(patch.documents.map((d) => d.id));
       const toDelete = [...existingIds].filter((x) => !newIds.has(x));
@@ -359,6 +371,21 @@ export const useStore = create<Store>((set, get) => ({
         await supabase.from("project_documents").insert(
           toAdd.map((d) => ({ project_id: id, name: d.name, size: d.size, uploaded_by: get().currentUser?.id })),
         );
+      }
+      for (const d of toAdd) await get().logActivity(id, "doc_added", `Tải lên tài liệu "${d.name}"`);
+      for (const did of toDelete) {
+        const name = existing.find((x) => x.id === did)?.name ?? "—";
+        await get().logActivity(id, "doc_removed", `Xóa tài liệu "${name}"`);
+      }
+    }
+    if (before) {
+      if (patch.status !== undefined && patch.status !== before.status) {
+        await get().logActivity(id, "project_status_changed",
+          `Cập nhật trạng thái dự án: ${statusLabel[before.status]} → ${statusLabel[patch.status]}`);
+      }
+      if (patch.progress !== undefined && patch.progress !== before.progress) {
+        await get().logActivity(id, "project_progress_changed",
+          `Cập nhật tiến độ: ${before.progress}% → ${patch.progress}%`);
       }
     }
     await get().refreshAll();
