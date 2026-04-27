@@ -22,7 +22,8 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useStore, taskStatusLabel, TaskStatus, Task } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Send, Star, MessageSquare } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Send, Star, MessageSquare, LayoutGrid, List } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -172,6 +173,13 @@ export default function Tasks() {
         </Dialog>
       </div>
 
+      <Tabs defaultValue="table" className="w-full">
+        <TabsList>
+          <TabsTrigger value="table" className="gap-2"><List className="h-4 w-4" /> Bảng</TabsTrigger>
+          <TabsTrigger value="kanban" className="gap-2"><LayoutGrid className="h-4 w-4" /> Kanban</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="table">
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -281,6 +289,88 @@ export default function Tasks() {
           </Table>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="kanban">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {(Object.keys(taskStatusLabel) as TaskStatus[]).map((col) => {
+              const colTasks = filtered.filter((t) => t.status === col);
+              return (
+                <div
+                  key={col}
+                  className="rounded-lg border bg-muted/30 p-3 flex flex-col min-h-[400px]"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const id = e.dataTransfer.getData("text/plain");
+                    if (id) updateStatus(id, col);
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColor[col]}>{taskStatusLabel[col]}</Badge>
+                      <span className="text-xs text-muted-foreground">{colTasks.length}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 flex-1">
+                    {colTasks.map((t) => {
+                      const proj = projects.find((p) => p.id === t.projectId);
+                      const u = users.find((x) => x.id === t.assignee);
+                      return (
+                        <div
+                          key={t.id}
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
+                          className="rounded-md border bg-card p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow transition-shadow"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-medium text-sm leading-snug">{t.title}</p>
+                            <Badge className={`${priorityColor[t.priority]} text-[10px] shrink-0`}>
+                              {t.priority === "high" ? "Cao" : t.priority === "medium" ? "TB" : "Thấp"}
+                            </Badge>
+                          </div>
+                          {t.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{t.description}</p>
+                          )}
+                          <div className="text-xs text-muted-foreground mt-2 truncate">{proj?.name || "—"}</div>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Avatar className="h-6 w-6 shrink-0">
+                                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-[10px]">
+                                  {(u?.name || "?").split(" ").slice(-2).map((n) => n[0]).join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs truncate">{u?.name || "—"}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground shrink-0">{t.dueDate}</span>
+                          </div>
+                          <div className="flex justify-end gap-1 mt-2">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(t)}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-destructive"
+                              onClick={() => { deleteTask(t.id); toast.success("Đã xóa"); }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {colTasks.length === 0 && (
+                      <div className="text-xs text-muted-foreground text-center py-8 border-2 border-dashed rounded-md">
+                        Kéo thả vào đây
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
