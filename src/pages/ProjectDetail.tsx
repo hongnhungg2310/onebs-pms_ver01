@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useStore, statusLabel, taskStatusLabel, roleLabel } from "@/lib/store";
 import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
+import GanttChart from "@/components/GanttChart";
 import { useState } from "react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
