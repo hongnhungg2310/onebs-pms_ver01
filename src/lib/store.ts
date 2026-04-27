@@ -377,10 +377,12 @@ export const useStore = create<Store>((set, get) => ({
       assignee_id: t.assignee || null, due_date: t.dueDate || null,
     });
     if (error) { toast.error(error.message); return; }
+    await get().logActivity(t.projectId, "task_created", `Tạo công việc "${t.title}"`);
     await get().refreshAll();
   },
 
   updateTask: async (id, patch) => {
+    const before = get().tasks.find((x) => x.id === id);
     const dbPatch: any = {};
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.description !== undefined) dbPatch.description = patch.description;
@@ -391,12 +393,35 @@ export const useStore = create<Store>((set, get) => ({
     if (patch.dueDate !== undefined) dbPatch.due_date = patch.dueDate || null;
     const { error } = await supabase.from("tasks").update(dbPatch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    if (before) {
+      const logs: Array<[string, string]> = [];
+      if (patch.status !== undefined && patch.status !== before.status) {
+        logs.push(["task_status_changed",
+          `Cập nhật trạng thái "${before.title}": ${taskStatusLabel[before.status]} → ${taskStatusLabel[patch.status]}`]);
+      }
+      if (patch.assignee !== undefined && patch.assignee !== before.assignee) {
+        const newU = get().users.find((u) => u.id === patch.assignee)?.name ?? "—";
+        logs.push(["task_assignee_changed", `Đổi người phụ trách "${before.title}" → ${newU}`]);
+      }
+      if (patch.priority !== undefined && patch.priority !== before.priority) {
+        logs.push(["task_priority_changed", `Đổi độ ưu tiên "${before.title}" → ${patch.priority}`]);
+      }
+      if (patch.dueDate !== undefined && patch.dueDate !== before.dueDate) {
+        logs.push(["task_due_changed", `Đổi hạn "${before.title}" → ${patch.dueDate || "—"}`]);
+      }
+      if (patch.title !== undefined && patch.title !== before.title) {
+        logs.push(["task_renamed", `Đổi tên công việc: "${before.title}" → "${patch.title}"`]);
+      }
+      for (const [t, d] of logs) await get().logActivity(before.projectId, t, d);
+    }
     await get().refreshAll();
   },
 
   deleteTask: async (id) => {
+    const before = get().tasks.find((x) => x.id === id);
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    if (before) await get().logActivity(before.projectId, "task_deleted", `Xóa công việc "${before.title}"`);
     await get().refreshAll();
   },
 
