@@ -122,6 +122,34 @@ export const useStore = create<Store>((set, get) => ({
   projects: [],
   tasks: [],
   documents: [],
+  activities: [],
+
+  logActivity: async (projectId, actionType, description) => {
+    const cur = get().currentUser;
+    if (!cur) return;
+    const { error } = await supabase.from("project_activities").insert({
+      project_id: projectId,
+      actor_id: cur.id,
+      action_type: actionType,
+      description,
+    });
+    if (error) { console.error(error); return; }
+    const { data } = await supabase
+      .from("project_activities")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const userNameById = new Map(get().users.map((u) => [u.id, u.name]));
+    const activities: ProjectActivity[] = (data ?? []).map((a: any) => ({
+      id: a.id,
+      projectId: a.project_id,
+      actorId: a.actor_id,
+      actorName: userNameById.get(a.actor_id) ?? "Hệ thống",
+      actionType: a.action_type,
+      description: a.description,
+      createdAt: a.created_at,
+    }));
+    set({ activities });
+  },
 
   init: async () => {
     if (get().initialized) return;
