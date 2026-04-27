@@ -10,7 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useStore, statusLabel, taskStatusLabel, roleLabel, TaskStatus } from "@/lib/store";
-import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2, Activity, History } from "lucide-react";
 import GanttChart from "@/components/GanttChart";
 
 const taskStatusColor: Record<TaskStatus, string> = {
