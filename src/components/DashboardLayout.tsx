@@ -14,10 +14,11 @@ import { roleLabel } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 
 const titles: Record<string, string> = {
-  "/": "Tổng quan",
+  "/": "Dashboard",
   "/projects": "Quản lý dự án",
   "/tasks": "Quản lý công việc",
-  "/documents": "Tài liệu hệ thống",
+  "/documents": "Quản lý tài liệu",
+  "/reports": "Báo cáo & Thống kê",
   "/users": "Quản lý người dùng",
   "/account": "Tài khoản cá nhân",
 };
