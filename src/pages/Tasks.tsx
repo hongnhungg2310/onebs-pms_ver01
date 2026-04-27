@@ -22,7 +22,8 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useStore, taskStatusLabel, TaskStatus, Task } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Send, Star, MessageSquare } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Send, Star, MessageSquare, LayoutGrid, List } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
