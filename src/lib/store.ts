@@ -469,6 +469,7 @@ export const useStore = create<Store>((set, get) => ({
     const cur = get().currentUser; if (!cur) return;
     const { error } = await supabase.from("documents").insert({
       name: d.name, category: d.category, size: d.size, uploaded_by: cur.id,
+      kind: d.kind, url: d.url,
     });
     if (error) { toast.error(error.message); return; }
     await get().refreshAll();
@@ -479,6 +480,8 @@ export const useStore = create<Store>((set, get) => ({
     if (patch.name !== undefined) dbPatch.name = patch.name;
     if (patch.category !== undefined) dbPatch.category = patch.category;
     if (patch.size !== undefined) dbPatch.size = patch.size;
+    if (patch.kind !== undefined) dbPatch.kind = patch.kind;
+    if (patch.url !== undefined) dbPatch.url = patch.url;
     const { error } = await supabase.from("documents").update(dbPatch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await get().refreshAll();
