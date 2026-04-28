@@ -278,6 +278,8 @@ export const useStore = create<Store>((set, get) => ({
         size: d.size ?? "",
         uploadedBy: userNameById.get(d.uploaded_by) ?? "—",
         uploadedAt: d.created_at?.slice(0, 10) ?? "",
+        kind: (d.kind === "link" ? "link" : "file"),
+        url: d.url ?? null,
       }));
 
       const activities: ProjectActivity[] = (activitiesRes.data ?? []).map((a: any) => ({
