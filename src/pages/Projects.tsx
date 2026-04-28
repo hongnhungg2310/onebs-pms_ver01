@@ -18,14 +18,28 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useStore, ProjectStatus, statusLabel, Project } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Calendar, Users as UsersIcon, ArrowRight } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown, Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 const statusColor: Record<ProjectStatus, string> = {
   planning: "bg-accent/20 text-accent-foreground border-accent/30",
-  in_progress: "bg-primary/15 text-primary border-primary/30",
+  in_progress: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
   completed: "bg-secondary/15 text-secondary border-secondary/30",
   on_hold: "bg-muted text-muted-foreground border-border",
+};
+
+const initials = (name: string) =>
+  name.split(" ").map((n) => n[0]).slice(-2).join("").toUpperCase();
+
+const formatShortDate = (d: string) => {
+  if (!d) return "—";
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  const dd = String(dt.getDate()).padStart(2, "0");
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const yy = String(dt.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 };
 
 interface FormState {
