@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useStore, ProjectStatus, statusLabel, Project } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown, Star } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
@@ -43,9 +43,9 @@ const formatShortDate = (d: string) => {
 };
 
 interface FormState {
-  name: string; description: string; status: ProjectStatus; progress: number; startDate: string; endDate: string;
+  name: string; description: string; status: ProjectStatus; progress: number; startDate: string; endDate: string; managerId: string;
 }
-const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "" };
+const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "", managerId: "" };
 
 export default function Projects() {
   const { projects, tasks, users, addProject, updateProject, deleteProject } = useStore();
@@ -54,6 +54,11 @@ export default function Projects() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+
+  const managerCandidates = useMemo(
+    () => users.filter((u) => (u.role === "manager" || u.role === "admin") && !u.locked),
+    [users]
+  );
 
   const filtered = useMemo(() => projects.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
@@ -64,13 +69,26 @@ export default function Projects() {
   const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
   const openEdit = (p: Project) => {
     setEditing(p);
-    setForm({ name: p.name, description: p.description, status: p.status, progress: p.progress, startDate: p.startDate, endDate: p.endDate });
+    setForm({
+      name: p.name, description: p.description, status: p.status, progress: p.progress,
+      startDate: p.startDate, endDate: p.endDate,
+      managerId: p.members[0] || "",
+    });
     setOpen(true);
   };
   const submit = () => {
     if (!form.name.trim()) { toast.error("Vui lòng nhập tên dự án"); return; }
-    if (editing) { updateProject(editing.id, form); toast.success("Đã cập nhật dự án"); }
-    else { addProject(form); toast.success("Đã thêm dự án mới"); }
+    if (!form.managerId) { toast.error("Vui lòng chọn quản lý dự án"); return; }
+    const { managerId, ...rest } = form;
+    if (editing) {
+      // Đặt manager là phần tử đầu trong danh sách thành viên
+      const others = editing.members.filter((m) => m !== managerId);
+      updateProject(editing.id, { ...rest, members: [managerId, ...others] });
+      toast.success("Đã cập nhật dự án");
+    } else {
+      addProject({ ...rest, members: [managerId] });
+      toast.success("Đã thêm dự án mới");
+    }
     setOpen(false);
   };
   const onDelete = (id: string) => { deleteProject(id); toast.success("Đã xóa dự án"); };
@@ -133,6 +151,22 @@ export default function Projects() {
                   <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Quản lý dự án *</Label>
+                <Select value={form.managerId} onValueChange={(v) => setForm({ ...form, managerId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Chọn người quản lý" /></SelectTrigger>
+                  <SelectContent>
+                    {managerCandidates.length === 0 && (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">Chưa có quản lý/admin</div>
+                    )}
+                    {managerCandidates.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.name} {u.role === "admin" ? "(Admin)" : "(Quản lý)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
@@ -146,20 +180,19 @@ export default function Projects() {
         {filtered.map((p) => {
           const projectTaskCount = tasks.filter((t) => t.projectId === p.id).length;
           const memberUsers = p.members.map((mid) => users.find((u) => u.id === mid)).filter(Boolean) as typeof users;
-          const manager = memberUsers.find((u) => u.role === "manager") || memberUsers.find((u) => u.role === "admin") || memberUsers[0];
+          const manager = memberUsers[0];
           const visibleAvatars = memberUsers.slice(0, 3);
           const extraCount = Math.max(0, memberUsers.length - visibleAvatars.length);
           return (
             <Card key={p.id} className="group relative hover:shadow-lg hover:-translate-y-0.5 transition-smooth bg-gradient-card overflow-hidden">
               <Link to={`/projects/${p.id}`} className="absolute inset-0 z-0" aria-label={`Xem ${p.name}`} />
               <CardContent className="relative z-10 p-5 space-y-4 pointer-events-none">
-                {/* Header row: icon + star + status + actions */}
+                {/* Header row: icon + status + actions */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 pointer-events-auto">
                     <div className="h-10 w-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
                       <FolderKanban className="h-5 w-5" />
                     </div>
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   </div>
                   <div className="flex items-center gap-1 pointer-events-auto">
                     <Badge variant="outline" className={`rounded-full px-3 ${statusColor[p.status]}`}>
