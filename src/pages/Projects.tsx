@@ -151,6 +151,22 @@ export default function Projects() {
                   <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Quản lý dự án *</Label>
+                <Select value={form.managerId} onValueChange={(v) => setForm({ ...form, managerId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Chọn người quản lý" /></SelectTrigger>
+                  <SelectContent>
+                    {managerCandidates.length === 0 && (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">Chưa có quản lý/admin</div>
+                    )}
+                    {managerCandidates.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.name} {u.role === "admin" ? "(Admin)" : "(Quản lý)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
