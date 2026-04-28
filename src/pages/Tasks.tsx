@@ -343,18 +343,72 @@ export default function Tasks() {
                             </div>
                             <span className="text-xs text-muted-foreground shrink-0">{t.dueDate}</span>
                           </div>
-                          <div className="flex justify-end gap-1 mt-2">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(t)}>
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 text-destructive"
-                              onClick={() => { deleteTask(t.id); toast.success("Đã xóa"); }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                          <div className="flex items-center justify-between gap-1 mt-2">
+                            <Sheet>
+                              <SheetTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => setActiveTask(t)}>
+                                  <MessageSquare className="h-3 w-3" />
+                                  {t.comments.length > 0 && <span>{t.comments.length}</span>}
+                                </Button>
+                              </SheetTrigger>
+                              <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                                <SheetHeader><SheetTitle>Bình luận & Đánh giá</SheetTitle></SheetHeader>
+                                {activeTask && (
+                                  <div className="mt-4 space-y-4">
+                                    <div className="rounded-lg bg-muted/50 p-3">
+                                      <p className="font-medium">{activeTask.title}</p>
+                                      <p className="text-sm text-muted-foreground mt-1">{activeTask.description}</p>
+                                    </div>
+                                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                                      {activeTask.comments.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Chưa có bình luận.</p>}
+                                      {activeTask.comments.map((c) => (
+                                        <div key={c.id} className="flex gap-3">
+                                          <Avatar className="h-8 w-8"><AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">{c.author.split(" ").slice(-2).map((n) => n[0]).join("")}</AvatarFallback></Avatar>
+                                          <div className="flex-1 rounded-lg bg-card border p-3">
+                                            <div className="flex items-center justify-between">
+                                              <p className="text-sm font-medium">{c.author}</p>
+                                              {c.rating !== undefined && (
+                                                <div className="flex">
+                                                  {Array.from({ length: 5 }).map((_, i) => (
+                                                    <Star key={i} className={`h-3 w-3 ${i < (c.rating || 0) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                                                  ))}
+                                                </div>
+                                              )}
+                                            </div>
+                                            <p className="text-sm mt-1">{c.content}</p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="space-y-2 border-t pt-4">
+                                      <Label>Đánh giá</Label>
+                                      <div className="flex gap-1">
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                          <button key={i} type="button" onClick={() => setRating(i + 1)}>
+                                            <Star className={`h-5 w-5 ${i < rating ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                                          </button>
+                                        ))}
+                                      </div>
+                                      <Textarea placeholder="Viết bình luận..." rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
+                                      <Button onClick={submitComment} className="w-full bg-gradient-primary gap-2"><Send className="h-3.5 w-3.5" /> Gửi</Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </SheetContent>
+                            </Sheet>
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(t)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => { deleteTask(t.id); toast.success("Đã xóa"); }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       );
