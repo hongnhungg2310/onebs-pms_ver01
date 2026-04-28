@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useStore, UserRole, roleLabel } from "@/lib/store";
-import { Plus, Search, Lock, Unlock, Download, ShieldAlert } from "lucide-react";
+import { Plus, Search, Lock, Unlock, Download, ShieldAlert, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Users() {
@@ -23,7 +23,19 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"all" | UserRole>("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", role: "member" as UserRole });
+  const [form, setForm] = useState({ name: "", email: "", role: "member" as UserRole, password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let p = "";
+    const arr = new Uint32Array(12);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < 12; i++) p += chars[arr[i] % chars.length];
+    setForm((f) => ({ ...f, password: p }));
+    setShowPassword(true);
+  };
 
   if (currentUser?.role !== "admin") {
     return (
@@ -41,12 +53,19 @@ export default function Users() {
     return ms && mr;
   }), [users, search, filterRole]);
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.name.trim() || !form.email.trim()) { toast.error("Nhập đầy đủ thông tin"); return; }
-    addUser(form);
-    setForm({ name: "", email: "", role: "member" });
-    setOpen(false);
-    toast.success("Đã thêm người dùng");
+    if (form.password.length < 8) { toast.error("Mật khẩu phải có ít nhất 8 ký tự"); return; }
+    setSubmitting(true);
+    try {
+      await addUser(form);
+      setForm({ name: "", email: "", role: "member", password: "" });
+      setShowPassword(false);
+      setOpen(false);
+      toast.success("Đã tạo tài khoản. Hãy bàn giao mật khẩu cho người dùng.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const exportCsv = () => {
@@ -93,8 +112,41 @@ export default function Users() {
                     <SelectContent>{(Object.keys(roleLabel) as UserRole[]).map((r) => <SelectItem key={r} value={r}>{roleLabel[r]}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Mật khẩu *</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        placeholder="Tối thiểu 8 ký tự"
+                        className="pr-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((s) => !s)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <Button type="button" variant="outline" onClick={generatePassword} className="gap-1.5 shrink-0">
+                      <RefreshCw className="h-3.5 w-3.5" /> Tạo
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Hãy lưu lại mật khẩu để bàn giao cho người dùng đăng nhập lần đầu.
+                  </p>
+                </div>
               </div>
-              <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button><Button onClick={submit} className="bg-gradient-primary">Tạo</Button></DialogFooter>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Hủy</Button>
+                <Button onClick={submit} disabled={submitting} className="bg-gradient-primary">
+                  {submitting ? "Đang tạo..." : "Tạo"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
