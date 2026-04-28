@@ -63,6 +63,8 @@ export interface Document {
   size: string;
   uploadedBy: string;
   uploadedAt: string;
+  kind: "file" | "link";
+  url: string | null;
 }
 
 export interface ProjectActivity {
