@@ -112,8 +112,41 @@ export default function Users() {
                     <SelectContent>{(Object.keys(roleLabel) as UserRole[]).map((r) => <SelectItem key={r} value={r}>{roleLabel[r]}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Mật khẩu *</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        placeholder="Tối thiểu 8 ký tự"
+                        className="pr-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((s) => !s)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <Button type="button" variant="outline" onClick={generatePassword} className="gap-1.5 shrink-0">
+                      <RefreshCw className="h-3.5 w-3.5" /> Tạo
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Hãy lưu lại mật khẩu để bàn giao cho người dùng đăng nhập lần đầu.
+                  </p>
+                </div>
               </div>
-              <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button><Button onClick={submit} className="bg-gradient-primary">Tạo</Button></DialogFooter>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Hủy</Button>
+                <Button onClick={submit} disabled={submitting} className="bg-gradient-primary">
+                  {submitting ? "Đang tạo..." : "Tạo"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
