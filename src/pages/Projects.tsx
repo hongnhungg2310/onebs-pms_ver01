@@ -180,20 +180,19 @@ export default function Projects() {
         {filtered.map((p) => {
           const projectTaskCount = tasks.filter((t) => t.projectId === p.id).length;
           const memberUsers = p.members.map((mid) => users.find((u) => u.id === mid)).filter(Boolean) as typeof users;
-          const manager = memberUsers.find((u) => u.role === "manager") || memberUsers.find((u) => u.role === "admin") || memberUsers[0];
+          const manager = memberUsers[0];
           const visibleAvatars = memberUsers.slice(0, 3);
           const extraCount = Math.max(0, memberUsers.length - visibleAvatars.length);
           return (
             <Card key={p.id} className="group relative hover:shadow-lg hover:-translate-y-0.5 transition-smooth bg-gradient-card overflow-hidden">
               <Link to={`/projects/${p.id}`} className="absolute inset-0 z-0" aria-label={`Xem ${p.name}`} />
               <CardContent className="relative z-10 p-5 space-y-4 pointer-events-none">
-                {/* Header row: icon + star + status + actions */}
+                {/* Header row: icon + status + actions */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 pointer-events-auto">
                     <div className="h-10 w-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
                       <FolderKanban className="h-5 w-5" />
                     </div>
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   </div>
                   <div className="flex items-center gap-1 pointer-events-auto">
                     <Badge variant="outline" className={`rounded-full px-3 ${statusColor[p.status]}`}>
