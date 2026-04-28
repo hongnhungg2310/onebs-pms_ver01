@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useStore, ProjectStatus, statusLabel, Project } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown, Star } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
