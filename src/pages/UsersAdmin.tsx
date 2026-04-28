@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useStore, UserRole, roleLabel } from "@/lib/store";
-import { Plus, Search, Lock, Unlock, Download, ShieldAlert } from "lucide-react";
+import { Plus, Search, Lock, Unlock, Download, ShieldAlert, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Users() {
@@ -23,7 +23,19 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"all" | UserRole>("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", role: "member" as UserRole });
+  const [form, setForm] = useState({ name: "", email: "", role: "member" as UserRole, password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let p = "";
+    const arr = new Uint32Array(12);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < 12; i++) p += chars[arr[i] % chars.length];
+    setForm((f) => ({ ...f, password: p }));
+    setShowPassword(true);
+  };
 
   if (currentUser?.role !== "admin") {
     return (
@@ -41,12 +53,19 @@ export default function Users() {
     return ms && mr;
   }), [users, search, filterRole]);
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.name.trim() || !form.email.trim()) { toast.error("Nhập đầy đủ thông tin"); return; }
-    addUser(form);
-    setForm({ name: "", email: "", role: "member" });
-    setOpen(false);
-    toast.success("Đã thêm người dùng");
+    if (form.password.length < 8) { toast.error("Mật khẩu phải có ít nhất 8 ký tự"); return; }
+    setSubmitting(true);
+    try {
+      await addUser(form);
+      setForm({ name: "", email: "", role: "member", password: "" });
+      setShowPassword(false);
+      setOpen(false);
+      toast.success("Đã tạo tài khoản. Hãy bàn giao mật khẩu cho người dùng.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const exportCsv = () => {

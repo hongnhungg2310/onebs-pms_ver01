@@ -107,7 +107,7 @@ interface Store {
   updateDocument: (id: string, patch: Partial<Document>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
 
-  addUser: (u: Omit<User, "id" | "locked">) => Promise<void>;
+  addUser: (u: Omit<User, "id" | "locked"> & { password: string }) => Promise<void>;
   updateUser: (id: string, patch: Partial<User>) => Promise<void>;
   toggleLockUser: (id: string) => Promise<void>;
 }
@@ -487,9 +487,16 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   addUser: async (u) => {
-    // Creating users requires admin API → use seed-demo-data style. For demo, prompt to use seed.
-    toast.info("Vui lòng tạo tài khoản mới qua màn hình Đăng ký hoặc liên hệ quản trị viên.");
-    void u;
+    const { data, error } = await supabase.functions.invoke("admin-create-user", {
+      body: { name: u.name, email: u.email, password: u.password, role: u.role },
+    });
+    if (error) {
+      const msg = (data as any)?.error || error.message || "Không tạo được tài khoản";
+      toast.error(msg);
+      return;
+    }
+    if ((data as any)?.error) { toast.error((data as any).error); return; }
+    await get().refreshAll();
   },
 
   updateUser: async (id, patch) => {
