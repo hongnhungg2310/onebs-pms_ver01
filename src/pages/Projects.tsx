@@ -48,7 +48,7 @@ interface FormState {
 const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "" };
 
 export default function Projects() {
-  const { projects, addProject, updateProject, deleteProject } = useStore();
+  const { projects, tasks, users, addProject, updateProject, deleteProject } = useStore();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | ProjectStatus>("all");
   const [open, setOpen] = useState(false);
