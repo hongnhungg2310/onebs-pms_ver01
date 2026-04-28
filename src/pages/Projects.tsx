@@ -43,9 +43,9 @@ const formatShortDate = (d: string) => {
 };
 
 interface FormState {
-  name: string; description: string; status: ProjectStatus; progress: number; startDate: string; endDate: string;
+  name: string; description: string; status: ProjectStatus; progress: number; startDate: string; endDate: string; managerId: string;
 }
-const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "" };
+const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "", managerId: "" };
 
 export default function Projects() {
   const { projects, tasks, users, addProject, updateProject, deleteProject } = useStore();
@@ -54,6 +54,11 @@ export default function Projects() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+
+  const managerCandidates = useMemo(
+    () => users.filter((u) => (u.role === "manager" || u.role === "admin") && !u.locked),
+    [users]
+  );
 
   const filtered = useMemo(() => projects.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
@@ -64,13 +69,26 @@ export default function Projects() {
   const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
   const openEdit = (p: Project) => {
     setEditing(p);
-    setForm({ name: p.name, description: p.description, status: p.status, progress: p.progress, startDate: p.startDate, endDate: p.endDate });
+    setForm({
+      name: p.name, description: p.description, status: p.status, progress: p.progress,
+      startDate: p.startDate, endDate: p.endDate,
+      managerId: p.members[0] || "",
+    });
     setOpen(true);
   };
   const submit = () => {
     if (!form.name.trim()) { toast.error("Vui lòng nhập tên dự án"); return; }
-    if (editing) { updateProject(editing.id, form); toast.success("Đã cập nhật dự án"); }
-    else { addProject(form); toast.success("Đã thêm dự án mới"); }
+    if (!form.managerId) { toast.error("Vui lòng chọn quản lý dự án"); return; }
+    const { managerId, ...rest } = form;
+    if (editing) {
+      // Đặt manager là phần tử đầu trong danh sách thành viên
+      const others = editing.members.filter((m) => m !== managerId);
+      updateProject(editing.id, { ...rest, members: [managerId, ...others] });
+      toast.success("Đã cập nhật dự án");
+    } else {
+      addProject({ ...rest, members: [managerId] });
+      toast.success("Đã thêm dự án mới");
+    }
     setOpen(false);
   };
   const onDelete = (id: string) => { deleteProject(id); toast.success("Đã xóa dự án"); };
