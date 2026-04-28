@@ -63,6 +63,8 @@ export interface Document {
   size: string;
   uploadedBy: string;
   uploadedAt: string;
+  kind: "file" | "link";
+  url: string | null;
 }
 
 export interface ProjectActivity {
@@ -276,6 +278,8 @@ export const useStore = create<Store>((set, get) => ({
         size: d.size ?? "",
         uploadedBy: userNameById.get(d.uploaded_by) ?? "—",
         uploadedAt: d.created_at?.slice(0, 10) ?? "",
+        kind: (d.kind === "link" ? "link" : "file"),
+        url: d.url ?? null,
       }));
 
       const activities: ProjectActivity[] = (activitiesRes.data ?? []).map((a: any) => ({
@@ -465,6 +469,7 @@ export const useStore = create<Store>((set, get) => ({
     const cur = get().currentUser; if (!cur) return;
     const { error } = await supabase.from("documents").insert({
       name: d.name, category: d.category, size: d.size, uploaded_by: cur.id,
+      kind: d.kind, url: d.url,
     });
     if (error) { toast.error(error.message); return; }
     await get().refreshAll();
@@ -475,6 +480,8 @@ export const useStore = create<Store>((set, get) => ({
     if (patch.name !== undefined) dbPatch.name = patch.name;
     if (patch.category !== undefined) dbPatch.category = patch.category;
     if (patch.size !== undefined) dbPatch.size = patch.size;
+    if (patch.kind !== undefined) dbPatch.kind = patch.kind;
+    if (patch.url !== undefined) dbPatch.url = patch.url;
     const { error } = await supabase.from("documents").update(dbPatch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await get().refreshAll();
