@@ -18,14 +18,28 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useStore, ProjectStatus, statusLabel, Project } from "@/lib/store";
-import { Plus, Search, Pencil, Trash2, Calendar, Users as UsersIcon, ArrowRight } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Calendar, FolderKanban, ClipboardList, Crown, Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 const statusColor: Record<ProjectStatus, string> = {
   planning: "bg-accent/20 text-accent-foreground border-accent/30",
-  in_progress: "bg-primary/15 text-primary border-primary/30",
+  in_progress: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
   completed: "bg-secondary/15 text-secondary border-secondary/30",
   on_hold: "bg-muted text-muted-foreground border-border",
+};
+
+const initials = (name: string) =>
+  name.split(" ").map((n) => n[0]).slice(-2).join("").toUpperCase();
+
+const formatShortDate = (d: string) => {
+  if (!d) return "—";
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  const dd = String(dt.getDate()).padStart(2, "0");
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const yy = String(dt.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 };
 
 interface FormState {
@@ -34,7 +48,7 @@ interface FormState {
 const empty: FormState = { name: "", description: "", status: "planning", progress: 0, startDate: "", endDate: "" };
 
 export default function Projects() {
-  const { projects, addProject, updateProject, deleteProject } = useStore();
+  const { projects, tasks, users, addProject, updateProject, deleteProject } = useStore();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | ProjectStatus>("all");
   const [open, setOpen] = useState(false);
@@ -129,51 +143,107 @@ export default function Projects() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((p) => (
-          <Card key={p.id} className="group hover:shadow-md hover:-translate-y-0.5 transition-smooth bg-gradient-card">
-            <CardContent className="p-5 space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{p.name}</h3>
-                  <Badge variant="outline" className={`mt-2 ${statusColor[p.status]}`}>{statusLabel[p.status]}</Badge>
+        {filtered.map((p) => {
+          const projectTaskCount = tasks.filter((t) => t.projectId === p.id).length;
+          const memberUsers = p.members.map((mid) => users.find((u) => u.id === mid)).filter(Boolean) as typeof users;
+          const manager = memberUsers.find((u) => u.role === "manager") || memberUsers.find((u) => u.role === "admin") || memberUsers[0];
+          const visibleAvatars = memberUsers.slice(0, 3);
+          const extraCount = Math.max(0, memberUsers.length - visibleAvatars.length);
+          return (
+            <Card key={p.id} className="group relative hover:shadow-lg hover:-translate-y-0.5 transition-smooth bg-gradient-card overflow-hidden">
+              <Link to={`/projects/${p.id}`} className="absolute inset-0 z-0" aria-label={`Xem ${p.name}`} />
+              <CardContent className="relative z-10 p-5 space-y-4 pointer-events-none">
+                {/* Header row: icon + star + status + actions */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 pointer-events-auto">
+                    <div className="h-10 w-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                      <FolderKanban className="h-5 w-5" />
+                    </div>
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  </div>
+                  <div className="flex items-center gap-1 pointer-events-auto">
+                    <Badge variant="outline" className={`rounded-full px-3 ${statusColor[p.status]}`}>
+                      {statusLabel[p.status]}
+                    </Badge>
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-smooth ml-1">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.preventDefault(); openEdit(p); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => e.preventDefault()}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa dự án?</AlertDialogTitle>
+                            <AlertDialogDescription>Hành động này sẽ xóa cả các công việc liên quan và không thể hoàn tác.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(p.id)} className="bg-destructive">Xóa</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-smooth">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(p)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Xóa dự án?</AlertDialogTitle>
-                        <AlertDialogDescription>Hành động này sẽ xóa cả các công việc liên quan và không thể hoàn tác.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(p.id)} className="bg-destructive">Xóa</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+
+                {/* Title & description */}
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold tracking-tight truncate">{p.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-1">{p.description || "—"}</p>
                 </div>
-              </div>
-              <p className="text-sm text-muted-foreground line-clamp-2">{p.description || "—"}</p>
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">Tiến độ</span>
-                  <span className="font-semibold">{p.progress}%</span>
+
+                {/* Pills: task count + manager */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 px-2.5 py-1 text-xs">
+                    <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="font-semibold">{projectTaskCount}</span>
+                    <span className="text-muted-foreground">task</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 px-2.5 py-1 text-xs max-w-[60%]">
+                    <Crown className="h-3.5 w-3.5 text-primary" />
+                    <span className="truncate">{manager?.name || "Chưa có quản lý"}</span>
+                  </span>
                 </div>
-                <Progress value={p.progress} className="h-2" />
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-                <span className="flex items-center gap-1"><UsersIcon className="h-3 w-3" /> {p.members.length} thành viên</span>
-                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {p.endDate || "—"}</span>
-              </div>
-              <Button asChild variant="ghost" size="sm" className="w-full justify-between text-primary hover:text-primary hover:bg-primary/10">
-                <Link to={`/projects/${p.id}`}>Xem chi tiết <ArrowRight className="h-3.5 w-3.5" /></Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+
+                {/* Progress (compact) */}
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Tiến độ</span>
+                    <span className="font-semibold">{p.progress}%</span>
+                  </div>
+                  <Progress value={p.progress} className="h-1.5" />
+                </div>
+
+                {/* Footer: avatars + due date */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center -space-x-2">
+                    {visibleAvatars.map((u) => (
+                      <Avatar key={u.id} className="h-7 w-7 border-2 border-background">
+                        {u.avatar && <AvatarImage src={u.avatar} alt={u.name} />}
+                        <AvatarFallback className="text-[10px]">{initials(u.name)}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {extraCount > 0 && (
+                      <span className="h-7 min-w-7 px-1.5 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] font-semibold">
+                        +{extraCount}
+                      </span>
+                    )}
+                    {memberUsers.length === 0 && (
+                      <span className="text-xs text-muted-foreground">Chưa có thành viên</span>
+                    )}
+                  </div>
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" /> {formatShortDate(p.endDate)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
         {filtered.length === 0 && (
           <Card className="md:col-span-2 xl:col-span-3 border-dashed">
             <CardContent className="p-12 text-center text-muted-foreground">
