@@ -54,7 +54,7 @@ export default function Account() {
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
+      <Card className="lg:col-span-3">
         <Tabs defaultValue="profile">
           <CardHeader className="pb-3">
             <TabsList className="w-full sm:w-auto">
