@@ -56,24 +56,32 @@ export default function Account() {
 
       <Card className="lg:col-span-2">
         <Tabs defaultValue="profile">
-          <CardHeader>
-            <TabsList>
+          <CardHeader className="pb-3">
+            <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
               <TabsTrigger value="password">Đổi mật khẩu</TabsTrigger>
             </TabsList>
           </CardHeader>
-          <CardContent>
-            <TabsContent value="profile" className="space-y-4 mt-0">
-              <div className="space-y-2"><Label>Họ và tên</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Vai trò</Label><Input value={roleLabel[currentUser.role]} disabled /></div>
-              <Button onClick={saveProfile} className="bg-gradient-primary gap-2"><Save className="h-4 w-4" /> Lưu thay đổi</Button>
+          <CardContent className="pt-0">
+            <TabsContent value="profile" className="mt-0 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5"><Label className="text-xs">Họ và tên</Label><Input className="h-9" value={name} onChange={(e) => setName(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">Email</Label><Input className="h-9" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Vai trò</Label><Input className="h-9" value={roleLabel[currentUser.role]} disabled /></div>
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button size="sm" onClick={saveProfile} className="bg-gradient-primary gap-2"><Save className="h-4 w-4" /> Lưu thay đổi</Button>
+              </div>
             </TabsContent>
-            <TabsContent value="password" className="space-y-4 mt-0">
-              <div className="space-y-2"><Label>Mật khẩu hiện tại</Label><Input type="password" value={pwd.old} onChange={(e) => setPwd({ ...pwd, old: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Mật khẩu mới</Label><Input type="password" value={pwd.new1} onChange={(e) => setPwd({ ...pwd, new1: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Xác nhận mật khẩu mới</Label><Input type="password" value={pwd.new2} onChange={(e) => setPwd({ ...pwd, new2: e.target.value })} /></div>
-              <Button onClick={changePwd} className="bg-gradient-primary gap-2"><KeyRound className="h-4 w-4" /> Đổi mật khẩu</Button>
+            <TabsContent value="password" className="mt-0 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Mật khẩu hiện tại</Label><Input className="h-9" type="password" value={pwd.old} onChange={(e) => setPwd({ ...pwd, old: e.target.value })} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">Mật khẩu mới</Label><Input className="h-9" type="password" value={pwd.new1} onChange={(e) => setPwd({ ...pwd, new1: e.target.value })} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">Xác nhận mật khẩu mới</Label><Input className="h-9" type="password" value={pwd.new2} onChange={(e) => setPwd({ ...pwd, new2: e.target.value })} /></div>
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button size="sm" onClick={changePwd} className="bg-gradient-primary gap-2"><KeyRound className="h-4 w-4" /> Đổi mật khẩu</Button>
+              </div>
             </TabsContent>
           </CardContent>
         </Tabs>
