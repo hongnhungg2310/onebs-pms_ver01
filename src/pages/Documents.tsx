@@ -188,9 +188,6 @@ export default function Documents() {
                   <SelectContent>{categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              {tab === "file" && (
-                <div className="space-y-2"><Label>Kích thước</Label><Input value={form.size} onChange={(e) => setForm({ ...form, size: e.target.value })} placeholder="vd: 1.2 MB" /></div>
-              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
