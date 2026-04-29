@@ -79,34 +79,38 @@ export default function ProjectDetail() {
       </Button>
 
       <Card className="bg-gradient-card">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold">{project.name}</h2>
-              <p className="text-muted-foreground mt-1">{project.description}</p>
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-xl font-bold truncate">{project.name}</h2>
                 <Badge className="bg-primary/15 text-primary border-primary/30">{statusLabel[project.status]}</Badge>
-                <span className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-3.5 w-3.5" /> {project.startDate} → {project.endDate}</span>
               </div>
+              {project.description && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
+              )}
+              <span className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">
+                <Calendar className="h-3.5 w-3.5" /> {project.startDate} → {project.endDate}
+              </span>
             </div>
-            <div className="md:w-64 space-y-1.5">
-              <div className="flex justify-between text-sm">
+            <div className="md:w-56 space-y-1">
+              <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Tiến độ tổng</span>
                 <span className="font-bold">{project.progress}%</span>
               </div>
-              <Progress value={project.progress} className="h-3" />
+              <Progress value={project.progress} className="h-2" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="progress">
+      <Tabs defaultValue="tasks">
         <TabsList>
-          <TabsTrigger value="progress">Tiến độ</TabsTrigger>
           <TabsTrigger value="tasks">Công việc ({projectTasks.length})</TabsTrigger>
           <TabsTrigger value="members">Thành viên ({memberUsers.length})</TabsTrigger>
           <TabsTrigger value="docs">Tài liệu ({project.documents.length})</TabsTrigger>
           <TabsTrigger value="history" className="gap-1.5"><History className="h-3.5 w-3.5" /> Lịch sử</TabsTrigger>
+          <TabsTrigger value="progress">Tiến độ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
