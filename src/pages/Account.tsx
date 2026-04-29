@@ -37,8 +37,8 @@ export default function Account() {
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <Card className="lg:col-span-1 bg-gradient-card">
+    <div className="grid gap-5 lg:grid-cols-5">
+      <Card className="lg:col-span-2 bg-gradient-card">
         <CardContent className="p-6 text-center">
           <Avatar className="h-24 w-24 mx-auto border-4 border-primary/20 shadow-glow">
             <AvatarFallback className="bg-gradient-primary text-primary-foreground text-2xl font-bold">{initials}</AvatarFallback>
@@ -54,7 +54,7 @@ export default function Account() {
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
+      <Card className="lg:col-span-3">
         <Tabs defaultValue="profile">
           <CardHeader className="pb-3">
             <TabsList className="w-full sm:w-auto">
