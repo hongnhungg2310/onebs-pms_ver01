@@ -95,6 +95,7 @@ export default function Login() {
             <p>Admin: an.nguyen@onebs.vn</p>
             <p>Manager: binh.tran@onebs.vn</p>
             <p>Member: cuong.le@onebs.vn</p>
+            <p>Ban Giám đốc: giamdoc.hoang@onebs.vn</p>
           </div>
         </Card>
       </div>
