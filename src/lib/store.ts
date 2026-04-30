@@ -234,7 +234,9 @@ export const useStore = create<Store>((set, get) => ({
         docsByProj.set(d.project_id, arr);
       });
 
-      const projects: Project[] = (projectsRes.data ?? []).map((p: any) => ({
+      const cur = get().currentUser;
+      const canSeeAllProjects = cur?.role === "admin" || cur?.role === "director";
+      const allProjects: Project[] = (projectsRes.data ?? []).map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description ?? "",
@@ -245,6 +247,9 @@ export const useStore = create<Store>((set, get) => ({
         members: memberByProj.get(p.id) ?? [],
         documents: docsByProj.get(p.id) ?? [],
       }));
+      const projects: Project[] = canSeeAllProjects
+        ? allProjects
+        : allProjects.filter((p) => cur && p.members.includes(cur.id));
 
       const commentsByTask = new Map<string, Comment[]>();
       (commentsRes.data ?? []).forEach((c: any) => {
