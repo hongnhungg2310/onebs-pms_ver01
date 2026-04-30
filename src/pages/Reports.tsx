@@ -54,7 +54,7 @@ export default function Reports() {
   // ===== Employee productivity =====
   const productivity = useMemo(() => {
     return users
-      .filter((u) => u.role !== "admin")
+      .filter((u) => u.role !== "admin" && u.role !== "director")
       .map((u) => {
         const my = tasks.filter((t) => t.assignee === u.id);
         const done = my.filter((t) => t.status === "done").length;

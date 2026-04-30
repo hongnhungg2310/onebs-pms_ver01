@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export type ProjectStatus = "planning" | "in_progress" | "completed" | "on_hold";
 export type TaskStatus = "todo" | "in_progress" | "review" | "done";
-export type UserRole = "admin" | "manager" | "member";
+export type UserRole = "admin" | "manager" | "member" | "director";
 
 export interface User {
   id: string;
@@ -539,5 +539,5 @@ export const taskStatusLabel: Record<TaskStatus, string> = {
   todo: "Cần làm", in_progress: "Đang làm", review: "Đánh giá", done: "Hoàn thành",
 };
 export const roleLabel: Record<UserRole, string> = {
-  admin: "Quản trị viên", manager: "Quản lý dự án", member: "Thành viên",
+  admin: "Quản trị viên", manager: "Quản lý dự án", member: "Thành viên", director: "Ban Giám đốc",
 };
