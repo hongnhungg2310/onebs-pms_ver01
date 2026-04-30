@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export type ProjectStatus = "planning" | "in_progress" | "completed" | "on_hold";
 export type TaskStatus = "todo" | "in_progress" | "review" | "done";
-export type UserRole = "admin" | "manager" | "member";
+export type UserRole = "admin" | "manager" | "member" | "director";
 
 export interface User {
   id: string;
