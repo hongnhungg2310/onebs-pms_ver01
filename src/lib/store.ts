@@ -539,5 +539,5 @@ export const taskStatusLabel: Record<TaskStatus, string> = {
   todo: "Cần làm", in_progress: "Đang làm", review: "Đánh giá", done: "Hoàn thành",
 };
 export const roleLabel: Record<UserRole, string> = {
-  admin: "Quản trị viên", manager: "Quản lý dự án", member: "Thành viên",
+  admin: "Quản trị viên", manager: "Quản lý dự án", member: "Thành viên", director: "Ban Giám đốc",
 };
