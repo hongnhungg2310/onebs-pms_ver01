@@ -92,9 +92,9 @@ export default function Login() {
 
           <div className="mt-6 rounded-md bg-muted/50 border p-3 text-xs text-muted-foreground">
             <p className="font-medium text-foreground mb-1">Tài khoản demo (mật khẩu: Demo@1234):</p>
-            <p>Admin: an.nguyen@onebs.vn</p>
-            <p>Manager: binh.tran@onebs.vn</p>
-            <p>Member: cuong.le@onebs.vn</p>
+            <p>Quản trị viên: an.nguyen@onebs.vn</p>
+            <p>Quản lý dự án: binh.tran@onebs.vn</p>
+            <p>Thành viên: cuong.le@onebs.vn</p>
             <p>Ban Giám đốc: giamdoc.hoang@onebs.vn</p>
           </div>
         </Card>
