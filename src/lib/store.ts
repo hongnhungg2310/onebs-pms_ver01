@@ -234,7 +234,9 @@ export const useStore = create<Store>((set, get) => ({
         docsByProj.set(d.project_id, arr);
       });
 
-      const projects: Project[] = (projectsRes.data ?? []).map((p: any) => ({
+      const cur = get().currentUser;
+      const canSeeAllProjects = cur?.role === "admin" || cur?.role === "director";
+      const allProjects: Project[] = (projectsRes.data ?? []).map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description ?? "",
@@ -245,6 +247,9 @@ export const useStore = create<Store>((set, get) => ({
         members: memberByProj.get(p.id) ?? [],
         documents: docsByProj.get(p.id) ?? [],
       }));
+      const projects: Project[] = canSeeAllProjects
+        ? allProjects
+        : allProjects.filter((p) => cur && p.members.includes(cur.id));
 
       const commentsByTask = new Map<string, Comment[]>();
       (commentsRes.data ?? []).forEach((c: any) => {
@@ -259,17 +264,20 @@ export const useStore = create<Store>((set, get) => ({
         commentsByTask.set(c.task_id, arr);
       });
 
-      const tasks: Task[] = (tasksRes.data ?? []).map((t: any) => ({
-        id: t.id,
-        projectId: t.project_id,
-        title: t.title,
-        description: t.description ?? "",
-        status: t.status,
-        priority: t.priority,
-        assignee: t.assignee_id ?? "",
-        dueDate: t.due_date ?? "",
-        comments: commentsByTask.get(t.id) ?? [],
-      }));
+      const visibleProjectIds = new Set(projects.map((p) => p.id));
+      const tasks: Task[] = (tasksRes.data ?? [])
+        .filter((t: any) => canSeeAllProjects || visibleProjectIds.has(t.project_id))
+        .map((t: any) => ({
+          id: t.id,
+          projectId: t.project_id,
+          title: t.title,
+          description: t.description ?? "",
+          status: t.status,
+          priority: t.priority,
+          assignee: t.assignee_id ?? "",
+          dueDate: t.due_date ?? "",
+          comments: commentsByTask.get(t.id) ?? [],
+        }));
 
       const documents: Document[] = (docsRes.data ?? []).map((d: any) => ({
         id: d.id,
