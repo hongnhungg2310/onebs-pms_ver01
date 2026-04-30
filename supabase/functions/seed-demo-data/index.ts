@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Role = "admin" | "manager" | "member";
+type Role = "admin" | "manager" | "member" | "director";
 const DEMO_PASSWORD = "Demo@1234";
 
 const DEMO_USERS: { email: string; full_name: string; role: Role; locked?: boolean }[] = [
@@ -16,6 +16,7 @@ const DEMO_USERS: { email: string; full_name: string; role: Role; locked?: boole
   { email: "cuong.le@onebs.vn", full_name: "Lê Hoàng Cường", role: "member" },
   { email: "duyen.pham@onebs.vn", full_name: "Phạm Mỹ Duyên", role: "member" },
   { email: "em.vu@onebs.vn", full_name: "Vũ Quốc Em", role: "member", locked: true },
+  { email: "giamdoc.hoang@onebs.vn", full_name: "Hoàng Minh Giám", role: "director" },
 ];
 
 Deno.serve(async (req) => {
