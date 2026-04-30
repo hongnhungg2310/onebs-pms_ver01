@@ -73,10 +73,13 @@ export default function ProjectDetail() {
   const updateProgress = (val: number) => updateProject(project.id, { progress: val });
 
   return (
-    <div className="space-y-5">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/projects")} className="gap-2 -ml-2">
-        <ArrowLeft className="h-4 w-4" /> Danh sách dự án
-      </Button>
+    <div className="space-y-4">
+      <button
+        onClick={() => navigate("/projects")}
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Danh sách dự án
+      </button>
 
       <Card className="bg-gradient-card">
         <CardContent className="p-4">
