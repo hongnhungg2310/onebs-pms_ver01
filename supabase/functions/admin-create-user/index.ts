@@ -15,7 +15,7 @@ const json = (status: number, body: unknown) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-type Role = "admin" | "manager" | "member";
+type Role = "admin" | "manager" | "member" | "director";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     return json(400, { error: "Email không hợp lệ" });
   if (password.length < 8 || password.length > 72)
     return json(400, { error: "Mật khẩu phải từ 8 đến 72 ký tự" });
-  if (!["admin", "manager", "member"].includes(role))
+  if (!["admin", "manager", "member", "director"].includes(role))
     return json(400, { error: "Vai trò không hợp lệ" });
 
   // Create the auth user (email pre-confirmed so they can sign in immediately)
