@@ -53,7 +53,7 @@ export function AppSidebar() {
 
       <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50">Chính</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Chính</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -72,7 +72,7 @@ export function AppSidebar() {
 
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50">Quản trị</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Quản trị</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
@@ -91,7 +91,7 @@ export function AppSidebar() {
         )}
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50">Cá nhân</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Cá nhân</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {accountItems.map((item) => (
