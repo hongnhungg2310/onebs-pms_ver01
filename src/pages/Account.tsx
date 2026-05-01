@@ -57,7 +57,7 @@ export default function Account() {
       <Card className="lg:col-span-3">
         <Tabs defaultValue="profile">
           <CardHeader className="pb-3">
-            <TabsList className="w-full sm:w-auto">
+            <TabsList className="inline-flex w-auto self-start">
               <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
               <TabsTrigger value="password">Đổi mật khẩu</TabsTrigger>
             </TabsList>
