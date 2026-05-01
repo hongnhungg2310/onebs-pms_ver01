@@ -59,7 +59,7 @@ export default function Login() {
             <span className="h-2 w-12 rounded-full bg-secondary" />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground relative">© 2025 Công ty Cổ phần OneBS</p>
+        <p className="text-xs text-muted-foreground relative">© 2026 Công ty Cổ phần OneBS</p>
       </div>
 
       <div className="flex items-center justify-center p-6">
