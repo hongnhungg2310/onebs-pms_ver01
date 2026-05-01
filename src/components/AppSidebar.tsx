@@ -40,13 +40,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border bg-sidebar p-4">
-        <div className="flex items-center gap-2.5">
-          <Logo className="h-8" />
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Logo className="h-10" />
           {!collapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold text-sidebar-foreground">OneBS PMS</span>
-              <span className="text-[10px] text-sidebar-foreground/60">Project Management</span>
-            </div>
+            <span className="text-xs font-semibold text-sidebar-foreground/80 leading-snug">
+              Hệ thống Quản lý dự án CNTT
+            </span>
           )}
         </div>
       </SidebarHeader>
