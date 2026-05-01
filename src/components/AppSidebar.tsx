@@ -31,21 +31,19 @@ export function AppSidebar() {
   const isAdmin = currentUser?.role === "admin";
 
   const linkCls = (active: boolean) =>
-    `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-smooth ${
+    `relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-smooth ${
       active
-        ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-md"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        ? "bg-gradient-to-r from-primary/25 to-primary/5 text-white font-semibold shadow-sm before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1 before:rounded-r before:bg-primary"
+        : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
     }`;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border bg-sidebar p-4">
-        <div className="flex items-center gap-2">
-          <div className="rounded-md bg-white p-1.5">
-            <Logo className="h-6" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <Logo className="h-8" />
           {!collapsed && (
-            <div className="flex flex-col">
+            <div className="flex flex-col leading-tight">
               <span className="text-sm font-bold text-sidebar-foreground">OneBS PMS</span>
               <span className="text-[10px] text-sidebar-foreground/60">Project Management</span>
             </div>
@@ -55,7 +53,7 @@ export function AppSidebar() {
 
       <SidebarContent className="bg-sidebar">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50">Chính</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Chính</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -74,7 +72,7 @@ export function AppSidebar() {
 
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50">Quản trị</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Quản trị</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
@@ -93,7 +91,7 @@ export function AppSidebar() {
         )}
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50">Cá nhân</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/45">Cá nhân</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {accountItems.map((item) => (
