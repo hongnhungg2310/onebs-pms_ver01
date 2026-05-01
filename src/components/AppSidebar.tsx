@@ -31,10 +31,10 @@ export function AppSidebar() {
   const isAdmin = currentUser?.role === "admin";
 
   const linkCls = (active: boolean) =>
-    `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-smooth ${
+    `relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-smooth ${
       active
-        ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-md"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        ? "bg-gradient-to-r from-primary/25 to-primary/5 text-white font-semibold shadow-sm before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1 before:rounded-r before:bg-primary"
+        : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
     }`;
 
   return (
