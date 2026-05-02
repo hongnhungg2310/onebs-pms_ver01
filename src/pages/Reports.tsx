@@ -80,7 +80,7 @@ export default function Reports() {
         <div>
           <h2 className="text-2xl font-bold">Báo cáo & Thống kê</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Tổng hợp tình hình dự án, công việc và năng suất nhân viên — phù hợp gửi Ban Giám đốc.
+            Tổng hợp tình hình dự án, công việc và năng suất nhân viên.
           </p>
         </div>
         <Button onClick={() => window.print()} variant="outline" className="gap-2">
