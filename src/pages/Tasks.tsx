@@ -67,9 +67,9 @@ export default function Tasks() {
     return ms && mp && mst;
   }), [tasks, search, filterProj, filterStatus]);
 
-  const openCreate = () => {
+  const openCreate = (presetStatus?: TaskStatus) => {
     setEditing(null);
-    setForm({ title: "", description: "", projectId: projects[0]?.id || "", status: "todo", priority: "medium", assignee: users[0]?.id || "", dueDate: "" });
+    setForm({ title: "", description: "", projectId: projects[0]?.id || "", status: presetStatus || "todo", priority: "medium", assignee: users[0]?.id || "", dueDate: "" });
     setOpen(true);
   };
   const openEdit = (t: Task) => {
@@ -122,7 +122,7 @@ export default function Tasks() {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openCreate} className="bg-gradient-primary gap-2"><Plus className="h-4 w-4" /> Thêm công việc</Button>
+            <Button onClick={() => openCreate()} className="bg-gradient-primary gap-2"><Plus className="h-4 w-4" /> Thêm công việc</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>{editing ? "Chỉnh sửa công việc" : "Thêm công việc"}</DialogTitle></DialogHeader>
@@ -310,6 +310,9 @@ export default function Tasks() {
                       <Badge className={statusColor[col]}>{taskStatusLabel[col]}</Badge>
                       <span className="text-xs text-muted-foreground">{colTasks.length}</span>
                     </div>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCreate(col)}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                   <div className="space-y-2 flex-1">
                     {colTasks.map((t) => {
