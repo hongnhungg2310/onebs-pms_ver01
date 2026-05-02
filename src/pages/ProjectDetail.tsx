@@ -6,11 +6,16 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { useStore, statusLabel, taskStatusLabel, roleLabel, TaskStatus } from "@/lib/store";
-import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2, Activity, History } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Calendar, UserPlus, Trash2, Activity, History, Plus } from "lucide-react";
 import GanttChart from "@/components/GanttChart";
 
 const taskStatusColor: Record<TaskStatus, string> = {
@@ -31,12 +36,43 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
+interface TaskForm {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: "low" | "medium" | "high";
+  assignee: string;
+  dueDate: string;
+}
+
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, tasks, users, activities, updateProject, updateTask } = useStore();
+  const { projects, tasks, users, activities, updateProject, updateTask, addTask } = useStore();
   const project = projects.find((p) => p.id === id);
   const [newDocName, setNewDocName] = useState("");
+
+  // Task creation dialog state
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [taskForm, setTaskForm] = useState<TaskForm>({
+    title: "", description: "", status: "todo", priority: "medium", assignee: "", dueDate: "",
+  });
+
+  const openTaskDialog = (status: TaskStatus) => {
+    setTaskForm({
+      title: "", description: "", status, priority: "medium",
+      assignee: users[0]?.id || "", dueDate: "",
+    });
+    setTaskDialogOpen(true);
+  };
+
+  const submitTask = async () => {
+    if (!taskForm.title.trim()) { toast.error("Nhập tên công việc"); return; }
+    if (!project) return;
+    await addTask({ ...taskForm, projectId: project.id });
+    toast.success("Đã thêm công việc");
+    setTaskDialogOpen(false);
+  };
 
   if (!project) {
     return (
@@ -107,6 +143,52 @@ export default function ProjectDetail() {
         </CardContent>
       </Card>
 
+      {/* Task creation dialog */}
+      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Thêm công việc</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-2"><Label>Tên *</Label><Input value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Mô tả</Label><Textarea rows={3} value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Người thực hiện</Label>
+                <Select value={taskForm.assignee} onValueChange={(v) => setTaskForm({ ...taskForm, assignee: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Trạng thái</Label>
+                <Select value={taskForm.status} onValueChange={(v) => setTaskForm({ ...taskForm, status: v as TaskStatus })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{(Object.keys(taskStatusLabel) as TaskStatus[]).map((s) => <SelectItem key={s} value={s}>{taskStatusLabel[s]}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Ưu tiên</Label>
+                <Select value={taskForm.priority} onValueChange={(v) => setTaskForm({ ...taskForm, priority: v as any })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Thấp</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="high">Cao</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Hạn hoàn thành</Label>
+                <Input type="date" value={taskForm.dueDate} onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTaskDialogOpen(false)}>Hủy</Button>
+            <Button onClick={submitTask} className="bg-gradient-primary">Thêm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="tasks">
         <TabsList>
           <TabsTrigger value="tasks">Công việc ({projectTasks.length})</TabsTrigger>
@@ -139,8 +221,18 @@ export default function ProjectDetail() {
                       }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <Badge className={taskStatusColor[col]}>{taskStatusLabel[col]}</Badge>
-                        <span className="text-xs text-muted-foreground">{colTasks.length}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge className={taskStatusColor[col]}>{taskStatusLabel[col]}</Badge>
+                          <span className="text-xs text-muted-foreground">{colTasks.length}</span>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => openTaskDialog(col)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                       <div className="space-y-2 flex-1">
                         {colTasks.map((t) => {
