@@ -310,6 +310,9 @@ export default function Tasks() {
                       <Badge className={statusColor[col]}>{taskStatusLabel[col]}</Badge>
                       <span className="text-xs text-muted-foreground">{colTasks.length}</span>
                     </div>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openCreate(col)}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                   <div className="space-y-2 flex-1">
                     {colTasks.map((t) => {
