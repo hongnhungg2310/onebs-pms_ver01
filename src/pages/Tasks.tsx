@@ -67,9 +67,9 @@ export default function Tasks() {
     return ms && mp && mst;
   }), [tasks, search, filterProj, filterStatus]);
 
-  const openCreate = () => {
+  const openCreate = (presetStatus?: TaskStatus) => {
     setEditing(null);
-    setForm({ title: "", description: "", projectId: projects[0]?.id || "", status: "todo", priority: "medium", assignee: users[0]?.id || "", dueDate: "" });
+    setForm({ title: "", description: "", projectId: projects[0]?.id || "", status: presetStatus || "todo", priority: "medium", assignee: users[0]?.id || "", dueDate: "" });
     setOpen(true);
   };
   const openEdit = (t: Task) => {
