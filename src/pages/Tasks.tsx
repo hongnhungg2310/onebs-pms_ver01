@@ -122,7 +122,7 @@ export default function Tasks() {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openCreate} className="bg-gradient-primary gap-2"><Plus className="h-4 w-4" /> Thêm công việc</Button>
+            <Button onClick={() => openCreate()} className="bg-gradient-primary gap-2"><Plus className="h-4 w-4" /> Thêm công việc</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>{editing ? "Chỉnh sửa công việc" : "Thêm công việc"}</DialogTitle></DialogHeader>
